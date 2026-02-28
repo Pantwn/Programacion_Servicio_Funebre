@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Programa de Servicio Fúnebre</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #7f8c8d;
+            --accent: #d35400;
+            --bg-color: #f4f6f7;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding-bottom: 50px; }
+
+        /* HEADER Y FOTO */
+        .header-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(rgba(44, 62, 80, 0.7), rgba(44, 62, 80, 0.9)), url('https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80') center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-container h1 { font-size: 1.8rem; margin-bottom: 5px; font-weight: 300; }
+        .header-container h2 { font-size: 1.2rem; font-style: italic; font-weight: 300; }
+        .header-message { margin-top: 15px; font-size: 0.95rem; opacity: 0.9; max-width: 80%; }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        
+        .section-title {
+            text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 1.1rem;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* ACORDEONES */
+        .accordion-item { background: var(--card-bg); margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        .accordion-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; cursor: pointer; transition: background 0.3s;
+        }
+        .accordion-header:active { background: #eef2f5; }
+        
+        .prog-left { display: flex; align-items: center; gap: 12px; font-weight: 600; color: var(--primary); font-size: 1rem; }
+        .prog-left i { color: var(--secondary); width: 20px; text-align: center; }
+        .prog-right { color: var(--secondary); font-style: italic; font-size: 0.9rem; text-align: right; }
+
+        .accordion-content { display: none; padding: 20px; background: #fafbfc; border-top: 1px solid #eee; font-size: 0.95rem; }
+        
+        /* ESTILOS DE TEXTO INTERNO */
+        .content-block { margin-bottom: 15px; }
+        .content-block h4 { color: var(--primary); margin-bottom: 5px; }
+        .alert-error { color: #c0392b; font-weight: bold; }
+        .alert-success { color: #27ae60; font-weight: bold; }
+        ul { padding-left: 20px; margin-bottom: 15px; }
+        
+        /* BOTONES */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--primary); color: white; border: none; padding: 10px 15px;
+            border-radius: 5px; font-size: 0.9rem; cursor: pointer; transition: 0.2s;
+            margin-top: 10px; margin-right: 5px; text-decoration: none;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-mp3 { background: #2980b9; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; }
+        
+        /* BUSCADOR */
+        .search-box { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; font-size: 1rem; outline: none; }
+        .search-box:focus { border-color: var(--primary); }
+        
+        /* LISTA DE HIMNOS */
+        .hymn-list { max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; background: white; }
+        .hymn-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .hymn-item:last-child { border-bottom: none; }
+        .hymn-title { font-weight: 600; cursor: pointer; color: var(--primary); display: flex; align-items: center; gap: 8px; flex: 1; }
+        
+        /* SELECCIÓN DINÁMICA (LocalStorage) */
+        .selected-hymns-container { margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-radius: 6px; }
+
+        /* MODALES (POPUPS PANTALLA COMPLETA) */
+        .modal {
+            display: none; position: fixed; inset: 0; background: var(--bg-color);
+            z-index: 1000; overflow-y: auto; padding: 20px; animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .modal-title { font-size: 1.5rem; color: var(--primary); }
+        .btn-close { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+        
+        .modal-body { font-size: 1.2rem; line-height: 1.8; color: #222; white-space: pre-wrap; padding-bottom: 40px; }
+        .modal-hint { text-align: center; color: var(--secondary); font-size: 0.85rem; margin-top: 30px; font-style: italic; }
+
+        /* LETRA CAPITAL PARA BIOGRAFÍA */
+        .biography-text::first-letter {
+            font-size: 4rem; font-weight: bold; color: var(--primary); float: left;
+            margin-top: -10px; margin-right: 8px; line-height: 1; font-family: "Georgia", serif;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1><i class="fas fa-dove"></i> Programa Servicio Fúnebre</h1>
+        <h2>Hna. Ma. Elva Ambrosio Rodriguez</h2>
+        <div class="header-message">"Yo soy la resurrección y la vida; el que cree en mí, aunque esté muerto, vivirá." - Juan 11:25</div>
+    </div>
+
+    <div class="container">
+        <div class="section-title"><i class="fas fa-list-ul"></i> Bosquejo del Programa</div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-door-open"></i> Invitación al Servicio</div>
+                <div class="prog-right">Carlos Martini</div>
+            </div>
+            <div class="accordion-content">
+                <p>Se invita a la familia a ocupar los primeros lugares en las bancas, de la forma más respetuosa posible.</p>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-handshake"></i> Bienvenida</div>
+                <div class="prog-right">Carlos Martini</div>
+            </div>
+            <div class="accordion-content">
+                <div class="content-block">
+                    <h4><i class="fas fa-exclamation-triangle alert-error"></i> Frases a evitar</h4>
+                    <ul>
+                        <li><span class="alert-error">❌ "Ya está en el cielo"</span> → Los muertos duermen hasta la resurrección (1 Tes. 4:16).</li>
+                        <li><span class="alert-error">❌ "Nos mira desde arriba"</span> → Evita idea de conciencia tras la muerte.</li>
+                        <li><span class="alert-error">❌ "Dios lo necesitaba allá"</span> → Sugiere que Dios causa muerte por necesidad.</li>
+                        <li><span class="alert-error">❌ "No lloren"</span> → El duelo es legítimo. Mejor: "Lloramos, pero con esperanza."</li>
+                        <li><span class="alert-error">❌ "Está en un mejor lugar" / "Ya está con Jesús"</span></li>
+                    </ul>
+                </div>
+                <div class="content-block">
+                    <h4><i class="fas fa-check-circle alert-success"></i> Frases Recomendadas</h4>
+                    <p>✅ "Nos reunimos en este momento solemne para recordar, acompañar y afirmar nuestra esperanza en Cristo."</p>
+                    <p>✅ "Aunque el dolor nos toca, no estamos sin consuelo."</p>
+                </div>
+                <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
+                <div class="content-block">
+                    <h4><i class="fas fa-book-reader"></i> OPCIÓN 1 (Lectura sugerida)</h4>
+                    <p>"Queridos hermanos, familiares y amigos: Nos encontramos reunidos en este momento difícil... No es una ocasión alegre, pero sí es una oportunidad sagrada para honrar la vida de la Hna. Elva, acompañar a su familia, y renovar nuestra esperanza en las promesas de Dios... Que cada palabra nos ayude a mirar hacia la certeza del regreso de Cristo."</p>
+                </div>
+                <div class="content-block">
+                    <h4><i class="fas fa-book-reader"></i> OPCIÓN 2 (Lectura sugerida)</h4>
+                    <p>"Querida familia, hermanos y amigos: Nos reunimos hoy en un momento de profundo dolor... La muerte nunca es fácil. Pero creemos que quienes mueren en Cristo no están perdidos, sino que descansan... Porque aunque hoy lloramos, también esperamos. Y esa esperanza no avergüenza."</p>
+                </div>
+            </div>
+        </div>
+
+        
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-praying-hands"></i> Oración Inicial</div>
+                <div class="prog-right">Hugo de Leon</div>
+            </div>
+            <div class="accordion-content">
+                <p><strong>Opción 1:</strong> "Señor, en este momento de dolor, venimos ante Ti buscando consuelo. Gracias por la vida de la Hna. Elva, y por la esperanza que tenemos en Tu regreso. Que Tu paz nos abrace... En el nombre de Jesús, amén."</p><br>
+                <p><strong>Opción 2:</strong> "Señor Dios de la vida, En este momento de despedida, venimos ante Ti con dolor, pero también con esperanza. Sabemos que ella descansa en el sueño de los justos... Que este servicio sea para honra de Tu nombre. En el nombre de Jesús, amén."</p>
+            </div>
+        </div>
+
+        
+
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-music"></i> Himnos de Consuelo</div>
+                <div class="prog-right">Arturo Lopez</div>
+            </div>
+            <div class="accordion-content">
+                <p><i>Himnos sugeridos (haz clic para abrir letra completa). Si cambian, busca abajo.</i></p>
+                
+                <div class="selected-hymns-container" id="consuelo-hymns-container">
+                    </div>
+                
+                <hr style="margin:15px 0;">
+                <h4><i class="fas fa-search"></i> Cambiar Himnos (Buscador)</h4>
+                <input type="text" class="search-box" id="search-consuelo" placeholder="Buscar himno..." onkeyup="filterHymns('consuelo')">
+                <div class="hymn-list" id="list-consuelo"></div>
+            </div>
+        </div>
+
+        
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-address-book"></i> Biografía de vida</div>
+                <div class="prog-right">Carlos Martini</div>
+            </div>
+            <div class="accordion-content">
+                <p>Para el día de la última predicación, antes de llevar al cementerio.</p>
+                <button class="btn" onclick="openModal('modal-bio')"><i class="fas fa-expand-arrows-alt"></i> Abrir Biografía en Pantalla Completa</button>
+            </div>
+        </div>
+
+        
+
+
+
+        
+         <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-music"></i> Himnos de Consuelo (Segunda parte)</div>
+                <div class="prog-right">Arturo Lopez</div>
+            </div>
+            <div class="accordion-content">
+                <p><i>Himnos sugeridos (haz clic para abrir letra completa). Si cambian, busca abajo.</i></p>
+                
+                <div class="selected-hymns-container" id="consuelo2-hymns-container">
+                    </div>
+                
+                <hr style="margin:15px 0;">
+                <h4><i class="fas fa-search"></i> Cambiar Himnos (Buscador)</h4>
+                
+                <input type="text" class="search-box" id="search-consuelo2" placeholder="Buscar himno..." onkeyup="filterHymns('consuelo2')">
+                
+                <div class="hymn-list" id="list-consuelo2"></div>
+            </div>
+        </div>
+
+
+
+       <!-- <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-microphone"></i> Canto Especial</div>
+                <div class="prog-right">Opcional</div>
+            </div>
+            <div class="accordion-content">
+                <p>Opcional, si hubiera quien cante.</p>
+            </div>
+        </div>  -->
+        
+        
+
+
+
+       <!-- <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-video"></i> Video</div>
+                <div class="prog-right">Familia</div>
+            </div>
+            <div class="accordion-content">
+                <p>Opcional. Según la familia lo desee.</p>
+            </div>
+        </div>   -->
+
+        
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-bible"></i> Tema</div>
+                <div class="prog-right">Ptr. Giovanni Castillo</div>
+            </div>
+            <div class="accordion-content">
+                <button class="btn" style="margin-bottom: 15px;" onclick="openModal('modal-biblia')"><i class="fas fa-book-open"></i> Abrir Cita Bíblica Principal</button>
+                <div class="content-block">
+                    <h4><i class="fas fa-info-circle"></i> Directrices (15 min aprox)</h4>
+                    <ul>
+                        <li><strong>Sea breve:</strong> Menos es más (15-20 min).</li>
+                        <li><strong>Valide el dolor:</strong> No espiritualice diciendo que no lloren. El dolor es el tributo por haber amado.</li>
+                        <li><strong>Resalte el amor de la iglesia:</strong> No están solos.</li>
+                        <li><strong>Evite lenguaje evangelístico agresivo:</strong> No pida bautismos ahora; que sientan el amor.</li>
+                        <li><strong>Mencione virtudes:</strong> Trabajadora, alegre, amorosa.</li>
+                        <li><strong>Estado de los muertos:</strong> Es un sueño profundo. Sin angustia ni dolor. Quita el miedo al purgatorio/limbo.</li>
+                        <li><strong>Cierre:</strong> Oración enfocada 100% en la protección de la familia más afectada.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-praying-hands"></i> Oración Final</div>
+                <div class="prog-right">Ptr. Giovanni Castillo</div>
+            </div>
+            <div class="accordion-content">
+                <p>"Señor amado, En medio del dolor, afirmamos nuestra fe en Tus promesas. Abraza a esta familia con Tu paz, fortalece su corazón, y recuérdales que la muerte no es el final. Que la esperanza de la resurrección les sostenga cada día, hasta el reencuentro glorioso contigo. En el nombre de Jesús, amén."</p>
+            </div>
+        </div>
+
+        
+
+
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-music"></i> Himno Final</div>
+                <div class="prog-right">Arturo Lopez</div>
+            </div>
+            <div class="accordion-content">
+                 <p><i>Himno sugerido. Cámbielo en el buscador si es necesario.</i></p>
+                 <div class="selected-hymns-container" id="final-hymns-container"></div>
+                 <hr style="margin:15px 0;">
+                 <input type="text" class="search-box" id="search-final" placeholder="Buscar himno final..." onkeyup="filterHymns('final')">
+                 <div class="hymn-list" id="list-final"></div>
+            </div>
+        </div>
+
+       
+
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-bullhorn"></i> Anuncios</div>
+                <div class="prog-right">Carlos Martini</div>
+            </div>
+            <div class="accordion-content">
+                <ul>
+                    <li><strong>1. Sepelio:</strong> "La familia informa que el cuerpo será trasladado al panteón [nombre] a las [hora]..."</li>
+                    <li><strong>2. Compañía:</strong> "Quienes deseen acompañar a la familia en el sepelio, pueden seguir el cortejo..."</li>
+                    <li><strong>3. Agradecimiento:</strong> "La Iglesia agradece a todos por su apoyo, oraciones y compañía."</li>
+                    <li><strong>4. Reconocimiento:</strong> "Agradecemos a quienes colaboraron en música, organización..."</li>
+                    <li><strong>5. Oración:</strong> "Invitamos a seguir orando por la familia Ambrosio Rodriguez."</li>
+                    <li><strong>6. Esperanza:</strong> "Este no es un adiós eterno. Esperamos el día glorioso..."</li>
+                </ul>
+            </div>
+        </div>
+        
+        
+
+
+
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <div class="prog-left"><i class="fas fa-book"></i> Himnario Servicio Fúnebre</div>
+                <div class="prog-right">Todos</div>
+            </div>
+            <div class="accordion-content">
+                <p>Busca cualquier himno. Puedes escribir partes de la letra, sin acentos ni orden exacto.</p>
+                <input type="text" class="search-box" id="search-all" placeholder="Buscar en todo el himnario..." onkeyup="filterHymns('all')">
+                <div class="hymn-list" id="list-all"></div>
+            </div>
+        </div>
+
+    </div>
+
+    
+
+
+
+
+    <div id="modal-bio" class="modal" ondblclick="closeModal('modal-bio')">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-book-open"></i> Biografía</h3>
+            <button class="btn-close" onclick="closeModal('modal-bio')"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+        <div class="modal-body">
+            <div class="biography-text">Nació en un hogar lleno de amor y principios cristianos, la hermana Ma. Elva Ambrosio Rodriguez dedicó su vida al servicio de Dios y de su prójimo. Fue un pilar fundamental para su familia, enseñando con el ejemplo el valor del trabajo, la fe inquebrantable y el amor incondicional.
+            
+A lo largo de su caminar terrenal, dejó huellas imborrables en su iglesia local y en la comunidad. Su sonrisa, sus consejos oportunos y su disposición para ayudar en los momentos de necesidad serán recordados por todos los que tuvieron el privilegio de conocerla. 
+
+Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de despertar en la mañana gloriosa de la resurrección, cuando el Señor la llame por su nombre a la vida eterna.</div>
+        </div>
+        <div class="modal-hint">(Doble clic en la pantalla para cerrar)</div>
+    </div>
+
+    <div id="modal-biblia" class="modal" ondblclick="closeModal('modal-biblia')">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-bible"></i> Texto Bíblico Principal</h3>
+            <button class="btn-close" onclick="closeModal('modal-biblia')"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+        <div class="modal-body" style="text-align: center; margin-top: 20%;">
+            <h2 style="font-size: 2.5rem; color: var(--accent); margin-bottom: 20px;">1 Tesalonicenses 4:13-14</h2>
+            <p style="font-size: 1.5rem; font-style: italic;">"Tampoco queremos, hermanos, que ignoréis acerca de los que duermen, para que no os entristezcáis como los otros que no tienen esperanza. Porque si creemos que Jesús murió y resucitó, así también traerá Dios con Jesús a los que durmieron en él."</p>
+        </div>
+        <div class="modal-hint">(Doble clic en la pantalla para cerrar)</div>
+    </div>
+
+    <div id="modal-himno" class="modal" ondblclick="closeModal('modal-himno')">
+        <div class="modal-header">
+            <h3 class="modal-title" id="hymn-modal-title"><i class="fas fa-music"></i> Himno</h3>
+            <button class="btn-close" onclick="closeModal('modal-himno')"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+        <div class="modal-body" id="hymn-modal-lyrics" style="text-align: center; font-size: 1.4rem;">
+            </div>
+        <div class="modal-hint">(Doble clic en la pantalla para cerrar)</div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE HIMNOS ---
+       const hymnsData = [
+            { 
+                num: "093", 
+                title: "Hubo uno que quiso", 
+                url_mp3: "https://tudominio.com/audios/093.mp3",
+                lyrics: "1\nHubo Uno que quiso por mí padecer\ny morir, por mi alma salvar;\nel camino tan cruento a la cruz recorrer,\npara así mis pecados lavar.\n\nCoro:\n¡En la cruz, en la cruz\nmis pecados clavó!\n¡Cuánto quiso por mí padecer!\nCon angustia a la cruz\nfue el benigno Jesús,\ny en su cuerpo mis culpas llevó.\n\n2\nEl es todo ternura y amor para mí,\nmi alma impura su sangre lavó;\nya no hay condenación, libre soy, yo lo sé;\nmi pecado en la cruz él clavó.\n\n3\nMe atendré al Maestro, jamás dejaré\nel sendero que él mismo trazó,\ny mis labios y mi alma alzarán su canción,\npues él todas mis culpas quitó." 
+            },
+            { 
+                num: "095", 
+                title: "Un día", 
+                url_mp3: "https://tudominio.com/audios/095.mp3",
+                lyrics: "1\nUn día que el cielo sus glorias cantaba,\nun día que el mal imperaba más cruel,\nJesús descendió y al nacer de una virgen\nnos dio con su vida un ejemplo tan fiel.\n\nCoro:\nVivo, me amaba; muerto, salvome;\ny en el sepulcro mi mal enterró;\nresucitado, él es mi justicia;\nun día él viene, pues lo prometió.\n\n2\nUn día lleváronle al monte Calvario,\nun día enclaváronle sobre una cruz;\nsufriendo dolores y pena de muerte,\nexpiando el pecado, salvome Jesús.\n\n3\nUn día la tumba ocultarle no pudo,\nun día el ángel la piedra quitó;\nhabiendo Jesús ya a la muerte vencido,\na estar con su Padre en su trono, ascendió.\n\n4\nUn día vendrá y con voz de arcángel\nun día en su gloria el Señor brillará.\n¡Oh día admirable en que unido su pueblo\nloores a Cristo por siempre dará!" 
+            },
+            { 
+                num: "097", 
+                title: "En el monte Calvario", 
+                url_mp3: "https://tudominio.com/audios/097.mp3",
+                lyrics: "1\nEn el monte Calvario estaba una cruz,\nemblema de afrenta y dolor, y yo amo esa cruz\ndo murió mi Jesús por salvar al más vil pecador.\n\nCoro:\n¡Oh! yo siempre amaré esa cruz,\nen sus triunfos mi gloria será;\ny algún día en vez de una cruz,\nmi corona Jesús me dará.\n\n2\nY aunque el mundo desprecie la cruz de Jesús,\npara mí tiene suma atracción, pues en ella llevó\nel Cordero de Dios de mi alma la condenación.\n\n3\nEn la cruz de Jesús do su sangre vertió,\nhermosura contemplo sin par; pues en ella triunfante\na la muerte venció, y mi ser puede santificar.\n\n4\nYo seré siempre fiel a la cruz de Jesús,\nsu oprobio con él llevaré, y algún día feliz\ncon los santos en luz para siempre su gloria veré." 
+            },
+            { 
+                num: "103", 
+                title: "Jesús resucitado", 
+                url_mp3: "https://tudominio.com/audios/103.mp3",
+                lyrics: "1\nJesús resucitado está en el mundo hoy.\nLos hombres no lo creen. mas yo seguro estoy.\nSu tierna mano siento y puedo oír su voz,\ny encuentro dondequiera al Salvador.\n\nCoro:\nJesús, Jesús mi Cristo vive hoy.\nHablándome, mirándome, conmigo va el Señor.\nJesús, Jesús, imparte salvación.\nContento voy, pues suyo soy:\nganó mi corazón.\n\n2\nPor dondequiera miro, lo puedo contemplar.\nY si la angustia llena mi alma de pesar,\nyo sé que Cristo vive y al fin me llevará\nal a mansión del cielo, donde él está.\n\n3\n¡Alégrate, cristiano! Tu voz levanta ya\ny canta aleluya al Padre celestial.\nNos trajo esperanza de eterna salvación,\npues en su Hijo amado hay redención." 
+            },
+            { 
+                num: "107", 
+                title: "Canto el gran amor", 
+                url_mp3: "https://tudominio.com/audios/107.mp3",
+                lyrics: "1\nCanto el gran amor de Aquel\nque primero a mí me amó,\npues dejó la gloria allá\ny en el Gólgota murió.\n\nCoro:\nTal amor ensalzaré,\nalabando al que murió\ninmolado para que\nvida eterna tenga yo.\n\n2\nAntes que llorara yo,\nya por mí lloraba él;\ny antes que supiera orar,\nél por mí gustó la hiel.\n\n3\nEste mundo nunca vio\ntan profundo y santo amor,\nque del mal me rescató\naliviando mi dolor.\n\n4\nNada bueno se halla en mí.\n¿Cómo puedes tanto amar?\nYo, Señor, me rindo a ti;\nhazme, pues, mi amor mostrar." 
+            },
+            { 
+                num: "109", 
+                title: "Un buen amigo tengo yo", 
+                url_mp3: "https://tudominio.com/audios/109.mp3",
+                lyrics: "1\nUn buen amigo tengo yo, su amor salvó mi vida;\ny por su muerte gozo hoy tal gracia inmerecida.\nY con el lazo de este amor, que nunca se ha cortado,\nseguro puedo siempre andar, a él estoy ligado.\n\n2\nUn buen amigo tengo yo, el ser me dio al crearme,\ny a sí mismo se entregó a fin de rescatarme.\nPues, cuanto tengo es todo de él, él mismo me lo ha dado;\nmi vida, fuerza y corazón, a él le he entregado.\n\n3\nUn buen amigo tengo yo, el Todopoderoso,\nque quiere al fin llevarme a mí a su hogar glorioso.\nPara animar mi vida aquí, me deja ver su gloria,\ny con la ayuda que me da yo gano la victoria.\n\n4\nUn buen amigo tengo yo, tan fiel y tan amante;\nmi sabio consejero es, mi protector constante.\nDe quien al mundo tanto amó, jamás podrá apartarme\nni el mundo, ni la muerte, pues soy suyo para siempre." 
+            },
+            { 
+                num: "159", 
+                title: "Yo espero la mañana", 
+                url_mp3: "https://tudominio.com/audios/159.mp3",
+                lyrics: "1\nYo espero la mañana\ndel gran día sin igual,\ndel cual dicha eterna emana\ny deleite perennal.\n\nCoro:\nEsperando, esperando\notra vida sin dolor\ny la grata bienvenida\nde Jesús, mi amante Salvador.\n\n2\nYo espero la victoria,\nde la muerte al fin triunfar,\nrecibir la eterna gloria\ny mis sienes coronar.\n\n3\nYo espero ir al cielo,\ndonde reina eterno amor;\nperegrino soy y anhelo\nlas moradas del Señor.\n\n4\nPronto espero unir mi canto\nal triunfante y celestial,\ny cambiar mi amargo llanto\npor el himno angelical." 
+            },
+            { 
+                num: "162", 
+                title: "En presencia estar de Cristo", 
+                url_mp3: "https://tudominio.com/audios/162.mp3",
+                lyrics: "1\nEn presencia estar de Cristo,\nver su rostro, ¿qué será,\ncuando al fin, en pleno gozo,\nmi alma le contemplará?\n\nCoro:\nCara a cara espero verle\ncuando venga en gloria y luz;\ncara a cara allá en el cielo\nhe de ver a mi Jesús.\n\n2\nSolo tras oscuro velo\nhoy lo puedo aquí mirar,\npero pronto viene el día\nque su gloria ha de mostrar.\n\n3\n¡Cuánto gozo habrá con Cristo\ncuando no haya más dolor,\ncuando cesen los peligros\nal abrigo de su amor!\n\n4\nCara a cara, ¡cuán glorioso\nha de ser así vivir,\nver el rostro de quien quiso\nnuestras almas redimir!" 
+            },
+            { 
+                num: "164", 
+                title: "Jesús pronto volverá", 
+                url_mp3: "https://tudominio.com/audios/164.mp3",
+                lyrics: "1\nJesús pronto volverá\nal mundo con gran poder.\nPromesa nos dio; y la cumplirá;\nsu rostro podremos ver.\nEn gloria y majestad\nvendrá nuestro Salvador,\npues señales por doquier\nanuncian al Señor.\n\n2\nMuy pronto el Señor vendrá,\ny el pueblo que le esperó,\ndel vil tentador librado será,\npor Cristo, quien lo salvó.\nSus hijos disfrutarán\nde Cristo la comunión,\ny por siempre gozarán\nsu eterna salvación.\n\n3\nDel norte y del sur vendrán\ntrofeos del Redentor.\nLas islas del mar sus joyas darán\nque adornen al Salvador.\nLos santos con él irán\nlas bodas a celebrar,\ny por siempre gozarán\nen su feliz hogar.\n\n4\nMuy pronto Jesús vendrá\ny el mal llegará a su fin:\ncon gran majestad su voz sonará\ngloriosa por el confín.\nLos ángeles tocarán\ntrompeta de salvación\ny los santos vivirán\nsu eterna redención." 
+            },
+            { 
+                num: "168", 
+                title: "El Rey que viene", 
+                url_mp3: "https://tudominio.com/audios/168.mp3",
+                lyrics: "1\nEl Rey que viene cerca está,\nel mismo que en la cruz murió;\nmas solo viene esta vez\npor los que rescató.\n\nCoro:\nCerca está, cerca está,\na las puertas mismas llega ya;\nviene presto, viene presto;\na las puertas llega ya.\n\n2\nDe su venida vemos ya\nseñales muchas por doquier,\ny pronto el alba eternal\npodrán los pueblos ver.\n\n3\nPues no contéis con gozo y paz:\naquí las luchas seguirán;\nmas cuando vuelva el Salvador,\neterno fin tendrán.\n\n4\nEntonces nuestro hogar será\nla Tierra Nueva, eternal;\nla muerte nunca entrará,\npues todo es inmortal." 
+            },
+            
+            { 
+                num: "169", 
+                title: "Cuando suene la trompeta", 
+                url_mp3: "https://tudominio.com/audios/169.mp3",
+                lyrics: "1\nCuando suene la trompeta en el día del Señor,\nsu esplendor y eterna claridad veré;\ncuando lleguen los salvados ante el magno Redentor,\ny se pase lista, yo responderé.\n\nCoro:\nCuando allá se pase lista,\ncuando allá se pase lista,\ncuando allá se pase lista\ny mi nombre llamen, yo responderé.\n\n2\nResucitarán gloriosos los que duermen en Jesús,\nlas delicias celestiales a gozar;\ny triunfantes entrarán en las mansiones de la luz;\npara mí también habrá un dulce hogar.\n\n3\nTrabajemos, pues, por Cristo, pregonando su amor,\nmientras dure nuestra vida terrenal;\ny al fin de la jornada, con los santos del Señor\nentraremos en la patria celestial." 
+            },
+            { 
+                num: "170", 
+                title: "La segunda venida de Cristo", 
+                url_mp3: "https://tudominio.com/audios/170.mp3",
+                lyrics: "1\nLa segunda venida de Cristo un suceso imponente será,\ntan grandioso cual nunca fue visto; más glorioso jamás se verá.\nDe los cielos el Hijo del hombre en la gloria del Padre vendrá;\n\"Verdadero y Fiel\" es su nombre, y el cetro del reino tendrá,\n\"Verdadero y Fiel\" es su nombre, y el cetro del reino tendrá.\n\n2\nCual relámpago, luce del este una nube con luz de crisol,\ncuyo brillo, que alcanza al oeste, sobrepuja los rayos del sol;\nes la hueste de ángeles santos, refulgentes de gloria y luz,\nque escoltan y loan con cantos al invicto y glorioso Jesús,\nque escoltan y loan con cantos al invicto y glorioso Jesús.\n\n3\nLos impíos de miedo se espantan y perecen al ver al Señor;\nmas los justos las manos levantan hacia Cristo, su buen Redentor.\nContemplando sus gratos fulgores, le aclaman con férvida voz:\n\"Rey de reyes, Señor de señores; mil hosannas al Hijo de Dios\",\n\"Rey de reyes, Señor de señores; mil hosannas al Hijo de Dios\".\n\n4\nDel sepulcro los lazos quebranta que ataban al pobre mortal;\na sus santos Jesús los levanta revestidos de luz inmortal.\nY los lleva consigo al cielo, los corona y palmas les da,\ny entonces disfrutan sin velo la presencia del Dios Jehová,\ny entonces disfrutan sin velo la presencia del Dios Jehová." 
+            },
+            { 
+                num: "171", 
+                title: "¿Has oído el mensaje?", 
+                url_mp3: "https://tudominio.com/audios/171.mp3",
+                lyrics: "1\n¿Has oído el mensaje del regreso del Señor?\nLa trompeta a medianoche sonará;\na sus fieles todos llamará sin olvidarte a ti,\nsi con Cristo te alistas a vivir.\n\nCoro:\nÉl viene, él viene, mirad; cercano, cercano él está.\nLas perlinas puertas ya ábrense de par en par\ny los salvos entrarán en el Edén;\ny sus voces jubilosas con los ángeles se oirán,\npues allí habitaremos con Jesús.\n\n2\nA los cielos subiremos con los ángeles de luz;\nlos amados separados se unirán\ncon nosotros para siempre; nunca se apartarán,\npues allí habitaremos con Jesús.\n\n3\nAndaremos por los mundos do el pecado no entró;\ndel amor les hablaremos de Jesús,\nque a buscarnos vino para darnos vida eternal,\npues allí habitaremos con Jesús.\n\n4\nPasarán los siglos uno tras el otro sin cesar,\ny el vigor perenne no se perderá\nde esa juventud eterna, primavera sin menguar,\npues allí habitaremos con Jesús." 
+            },
+            { 
+                num: "172", 
+                title: "Promesa dulce", 
+                url_mp3: "https://tudominio.com/audios/172.mp3",
+                lyrics: "1\nPromesa dulce: \"Yo vendré,\ny a los que sufren salvaré\".\nResponde mi alma: \"Presto ven;\nansioso esperaré\".\n\nCoro:\n¡Ven, Señor, mi Redentor!\n¡Ven, Señor, mi Redentor!\nResponde mi alma: \"¡Presto ven,\nSeñor, mi Redentor!\"\n\n2\nLos santos vuelven a vivir,\nal cielo todos subirán;\ny en tierra atado años mil\nha de quedar Satán.\n\n3\nDesciende entonces la ciudad,\nlos malos levantados son\na oír el fallo de su Juez:\n\"Eterna perdición\".\n\n4\nEl nuevo Edén florecerá\nen hermosura celestial;\njamás la muerte turbará\nla playa inmortal." 
+            },
+            { 
+                num: "180", 
+                title: "Sí, lo veremos", 
+                url_mp3: "https://tudominio.com/audios/180.mp3",
+                lyrics: "1\nSí, lo veremos cuando venga en gloria.\nSí, lo veremos al Rey y Señor.\nÁngeles y hombres le darán la gloria;\nalzando voces, hosannas cantarán.\n\n2\nSí, lo veremos la mañana hermosa.\nSí, lo veremos en todo esplendor.\nHuestes triunfantes de los redimidos\nentonaremos hosannas a Jesús.\n\n3\nSí, lo veremos en aquel gran día.\nSí, lo veremos en su majestad. Todos unidos le\ntributaremos nuestra alabanza:\n¡Hosanna al Señor! ¡Hosanna al Señor!" 
+            },
+            { 
+                num: "183", 
+                title: "No me olvidé de ti", 
+                url_mp3: "https://tudominio.com/audios/183.mp3",
+                lyrics: "1\nSi las pruebas de esta vida debilitan ya tu fe,\ny en tu mente surgen dudas de que venga otra vez.\nMira hoy hacia el Calvario, a la cruz donde sufrí,\n¿Qué más prueba quieres que esta: Te amé hasta morir?\n\nCoro:\nAunque pienses que demoro y sientas que me atraso,\nun día prometí volver y pronto lo cumpliré.\nAunque pienses que demoro y sientas que me atraso,\nyo no me olvidé de ti, vendré otra vez.\n\n2\n¿Te parece que podría olvidarme de cumplir,\nsi en la historia de este mundo rojas huellas ya dejé?\nSi una madre se olvidara de su hijo alguna vez,\naun así jamás pensaría olvidarme yo de ti." 
+            },
+            { 
+                num: "184", 
+                title: "Nunca te rindas", 
+                url_mp3: "https://tudominio.com/audios/184.mp3",
+                lyrics: "1\nDías hay, lo sé, en que triste te sientes\ny sin esperanza estás.\nPero existe un Dios que promete ayudarte,\ny fuerzas tu alma tendrá.\n\nCoro:\nNunca te rindas, Cristo ya viene,\ny su rostro pronto verás.\nNunca te rindas, Cristo ya viene;\nnos llevará a su hogar.\n\n2\nEste mundo cruel no será para siempre,\nel mal pronto terminará;\ny mi fe en Jesús cada día es más fuerte,\npues sé que Jesús volverá." 
+            },
+            { 
+                num: "209", 
+                title: "La Biblia nos habla de Cristo", 
+                url_mp3: "https://tudominio.com/audios/209.mp3",
+                lyrics: "1\nLa Biblia nos habla de Cristo\ny de su muerte en la cruz.\nSu santa Palabra ha dicho\nque él pronto vuelve en luz.\n\nCoro:\n¿Te hallas listo a encontrar al Señor?\n¿Lo haces todo con fe, con amor?\n¿Has peleado por fe la batalla del bien?\n¿Pueden otros a Cristo en ti ver?\n¿Eres fiel por doquiera que vas?\n¿Puedes tú contemplarlo en su faz\ny triunfante decir:\n\"Este es mi Dios\"?\n¿Puedes tú encontrar al Señor?\n\n2\nNo anheles el bien de esta vida,\npues ella se pasará.\nEntrégate a él sin medida,\nque hoy llamando está.\n\n3\nNo dejes que pase más tiempo\nsin entregarte a Jesús.\nAlístate, pues el Maestro\nmuy pronto vuelve en luz." 
+            },
+            { 
+                num: "261", 
+                title: "Salvador, a ti me rindo", 
+                url_mp3: "https://tudominio.com/audios/261.mp3",
+                lyrics: "1\nSalvador, a ti me rindo,\nobedezco sólo a ti.\nMi Guiador, mi Fortaleza,\ntodo encuentro, oh Cristo, en ti.\n\nCoro:\nYo me rindo a ti,\nyo me rindo a ti;\nmis flaquezas,\nmis pecados,\ntodo rindo a ti.\n\n2\nTe confiesa su delito\nmi contrito corazón.\nOye, Cristo, mi plegaria;\nquiero en ti tener perdón.\n\n3\nA tus pies, Señor, entrego\nbienes, goces y placer.\nQue tu Espíritu me llene,\ny de ti sienta poder.\n\n4\n¡Oh, qué gozo encuentro en Cristo!\n¡Cuánta paz a mi alma da!\nA su causa me consagro,\ny su amor mi amor será." 
+            },
+            { 
+                num: "291", 
+                title: "Perdido, fui a mi Jesús", 
+                url_mp3: "https://tudominio.com/audios/291.mp3",
+                lyrics: "1\nPerdido, fui a mi Jesús.\nÉl vio mi condición;\nen mi alma derramó su luz;\nsu amor me dio perdón.\n\nCoro:\nFue primero en la cruz donde yo vi la luz,\ny mi carga de pecado dejé;\nfue allí por fe do vi a Jesús,\ny siempre con él feliz seré.\n\n2\nEn cruenta cruz mi Salvador\nsu sangre derramó\npor este pobre pecador\na quien así salvó.\n\n3\nVenció la muerte, ¡qué poder!,\ny el Padre le exaltó\nal trono, para interceder\npor tales cual soy yo.\n\n4\nAunque él se fue, conmigo está\nel fiel Consolador,\nel guía que me llevará\nal reino del Señor." 
+            },
+
+
+           { 
+                num: "316", 
+                title: "Hay un mundo feliz más allá", 
+                url_mp3: "https://tudominio.com/audios/316.mp3",
+                lyrics: "1\nHay un mundo feliz más allá,\ndonde ángeles cantan en luz\ntributando eterno loor\nal invicto, glorioso Jesús.\n\nCoro:\nEn el mundo feliz\nreinaremos con nuestro Señor\nen el mundo feliz\nreinaremos con nuestro Señor.\n\n2\nCantaremos con gozo a Jesús,\nal Cordero que nos rescató,\nque con sangre vertida en la cruz\nlos pecados del mundo quitó.\n\n3\nPara siempre en el mundo feliz\ncon los santos daremos honor\nal invicto, glorioso Jesús,\na Jesús, nuestro Rey y Señor." 
+            },
+            { 
+                num: "318", 
+                title: "En la mansión de mi Señor", 
+                url_mp3: "https://tudominio.com/audios/318.mp3",
+                lyrics: "1\nEn la mansión de mi Señor\nno habrá ya más tribulación,\nno habrá pesar, ningún dolor,\nque me quebrante el corazón.\n\nCoro:\nAllá no habrá tribulación,\nningún pesar, ningún dolor;\ny entonaré feliz canción\nde alabanza al Señor.\n\n2\nResulta triste estar aquí\nmuy lejos de mi Redentor,\nmas morarán con él allí\nlos redimidos por su amor.\n\n3\nPerfecto amor encontraré\nen la mansión do Cristo está;\nperfecta calma allí tendré,\ny mi alma al fin descansará.\n\n4\nEn su presencia gozaré\nsu inmenso amor, su gran bondad;\nfeliz con Cristo reinaré\npor toda la eternidad." 
+            },
+            { 
+                num: "319", 
+                title: "Cuando mi lucha termine al final", 
+                url_mp3: "https://tudominio.com/audios/319.mp3",
+                lyrics: "1\nCuando mi lucha termine al final\ny me halle salvo en la playa eternal,\njunto al que adoro, mi Rey celestial,\neterna gloria será para mí.\n\nCoro:\nGloria sin fin eso será,\ngloria sin fin eso será.\nCuando por gracia su faz vea allí,\neterna gloria será para mí.\n\n2\nCuando la gracia infinita me dé\nbella morada en la casa del Rey,\nmaravillado su rostro veré,\ny eterna gloria será para mí.\n\n3\nEncontraré a mis amados allá;\ngozo cual río en redor correrá;\ndulce sonrisa Jesús me dará,\neterna gloria será para mí." 
+            },
+            { 
+                num: "320", 
+                title: "Jamás se dice \"adiós\" allá", 
+                url_mp3: "https://tudominio.com/audios/320.mp3",
+                lyrics: "1\nCuán grato es con amigos vernos\nen tiempo tan veloz;\nmas siempre llega el día triste\nen que se dice \"adiós\".\n\nCoro:\nJamás se dice \"adiós\" allá,\njamás se dice \"adiós\";\nen el país de gozo y paz\njamás se dice \"adiós\".\n\n2\nCuán dulce es el consuelo dado\npor ellos al partir:\nque cuando venga Cristo en gloria,\nnos hemos de reunir.\n\n3\nJamás habrá una despedida,\ntan dolorosa aquí;\nmas grata unión y paz eterna\nse gozarán allí." 
+            },
+            { 
+                num: "321", 
+                title: "Allá sobre montes", 
+                url_mp3: "https://tudominio.com/audios/321.mp3",
+                lyrics: "1\nAllá sobre montes, en feliz país,\nla ciudad divina reposando está,\nNuestros pies, aquí cansados, subirán:\nla mansión eterna divisamos ya.\n\nCoro:\n¡Vamos al hogar! ¡Vamos al hogar!\n¡Ved, sus torres brillan con gran esplendor!\n¡Ved la gloria cómo emana del Señor!\nEstaremos juntos por la eternidad\ncon los ángeles, cantando en la Ciudad.\n¡Vamos al hogar!\n\n2\nLos antiguos profetas nos hablaron ya\nde las calles de oro de esa gran ciudad.\nPor la fe hoy la podemos contemplar,\ncon sus muros de oro y jaspe, sin igual.\n\n3\nHermano, hermana, ¿estarás allá,\nen aquella tierra do pesar no habrá?\nEl mensaje santo hoy acepta fiel,\ny al venir el Salvador te llamará." 
+            },
+            { 
+                num: "325", 
+                title: "No puede el mundo ser mi hogar", 
+                url_mp3: "https://tudominio.com/audios/325.mp3",
+                lyrics: "1\nNo puede el mundo ser mi hogar,\nsus bienes han de perecer;\nanhelo pronto a Sion llegar\ny a mi Maestro ver.\n\nCoro:\nIré al hogar,\na mi eterno y dulce hogar,\nmi hogar;\nsí, iré al hogar que Jesús fue a preparar.\n\n2\nLa muerte allí no existirá;\ntampoco la separación;\ntristeza nunca más habrá\nen la anhelada Sion.\n\n3\nDeseo pronto arribar\nal puerto de la eterna paz.\nCon Cristo quiero allí reinar\ndejando el mundo atrás." 
+            },
+            { 
+                num: "326", 
+                title: "Un día yo he de faltar", 
+                url_mp3: "https://tudominio.com/audios/326.mp3",
+                lyrics: "1\nUn día yo he de faltar\nde mi lugar en esta grey;\nmas ¡oh, qué gozo al despertar\nen el palacio de mi Rey!\n\nCoro:\nY cara a cara le veré,\ny viviré con él allí,\ny para siempre cantaré:\n\"Salvado por su gracia fui\".\n\n2\nUn día a mí la muerte atroz\nvendrá, mas cuándo, no lo sé;\nsolo esto sé, que con mi Dios\nun sitio yo feliz tendré.\n\n3\nUn día yo, tal como el sol,\nmi ocaso y fin tendré también;\nmas cuando venga el Salvador,\nsu voz dirá: \"Ven, hijo, ven\".\n\n4\nEl día fausto aguardo yo,\ny sé que pronto llegará;\nvendrá en su gloria mi Señor\ny a su mansión me llevará." 
+            },
+            { 
+                num: "328", 
+                title: "¿Nos veremos junto al río?", 
+                url_mp3: "https://tudominio.com/audios/328.mp3",
+                lyrics: "1\n¿Nos veremos junto al río\ncuyas aguas cristalinas\nfluyen puras, argentinas,\ndesde el trono de nuestro Dios?\n\nCoro:\n¡Oh! sí, nos congregaremos\nen la ribera hermosa del río\ncuyas aguas vivas dimanan\ndel trono de nuestro Dios.\n\n2\nEn las márgenes del río\ndo los serafines van,\ndonde hay bellos querubines,\nda la dicha eterna Dios.\n\n3\nAntes de llegar al río,\nnuestras cargas al dejar,\nlibres todos quedaremos\npor la gracia del Señor.\n\n4\nPronto al río llegaremos,\nnuestra peregrinación\nterminando en los acentos\nde la célica canción." 
+            },
+            { 
+                num: "329", 
+                title: "En la célica morada", 
+                url_mp3: "https://tudominio.com/audios/329.mp3",
+                lyrics: "1\nEn la célica morada\nde las cumbres del Edén,\ndonde toda voz ensalza\nal Autor de todo bien,\n¿el pesar recordaremos,\ny la triste nublazón,\ntantas luchas del Espíritu\ncon el débil corazón?\n\nCoro:\nSí, allí será gratísimo\nconocer y alabar\nal Pastor fiel y benéfico\nque nos ayudó a llegar.\n\n2\nOración, deberes, penas,\nvías que anduvimos ya,\nposeyendo las riquezas\nque Jesús nos guarda allá,\n¿la memoria retendremos\ndel pretérito dolor,\ndel camino largo, aspérrimo,\ncon sus luchas, su temor?" 
+            },
+            { 
+                num: "333", 
+                title: "Aunque en esta vida", 
+                url_mp3: "https://tudominio.com/audios/333.mp3",
+                lyrics: "1\nAunque en esta vida fáltenme riquezas,\nsé que allá en la gloria tengo mi mansión.\nAlma tan perdida entre las pobrezas,\nde mi Jesucristo tuvo compasión.\n\nCoro:\nMás allá del sol, más allá del sol,\nyo tengo un hogar, hogar bello hogar\nmás allá del sol.\nMás allá del sol, más allá del sol,\nyo tengo un hogar, hogar, bello hogar\nmás allá del sol.\n\n2\nAsí por el mundo yo voy caminando,\npruebas me rodean y hay tentación.\nPero Jesucristo, que me está probando,\nllevarame salvo hasta su mansión,\n\n3\nCristo a cada raza del linaje humano\npuede impartirle plena salvación.\ny una bella casa hecha por su mano\nfue a prepararle a la santa Sion." 
+            },
+            { 
+                num: "334", 
+                title: "Cuánto anhelo llegar", 
+                url_mp3: "https://tudominio.com/audios/334.mp3",
+                lyrics: "1\nCuánto anhelo llegar al celeste hogar,\na la margen del río de vida;\nsorpresas sin fin me aguardan allá;\nmas ¡oh, qué será ver a Cristo!\n\nCoro:\n¡Oh, qué será ver a Cristo!\n¡Qué será ver al Señor!\nPronto nos llevará al eterno hogar,\nmas ¡oh, qué será ver a Cristo!\n\n2\nUnos han de morir para no más vivir,\nmas los justos a vida retornan.\n¡Qué gozo será volverlos a ver!,\nmas ¡oh, qué será ver a Cristo!\n\n3\nCuando vaya a vivir en aquella ciudad,\ncuando vea el rostro divino,\nno habrá más dolor, ni muerte jamás.\n¡Oh, sí, qué será ver a Cristo!" 
+            },
+            { 
+                num: "335", 
+                title: "Mi hogar celestial", 
+                url_mp3: "https://tudominio.com/audios/335.mp3",
+                lyrics: "1\nHay en el cielo un dulce hogar,\ndonde prefiero yo morar;\nJesús, mi Señor, me prepara allí\nun hogar, un bellísimo hogar.\n\nCoro:\nBello hogar, dulce hogar,\ndonde anhelo estar.\nMiro al fulgor de la patria de luz:\nmi dulce hogar.\n\n2\nCon mis amados me veré;\na Cristo allí coronaré;\nloor le daré por la eternidad\nen mi hogar, mi bellísimo hogar.\n\n3\nLa vida es breve, pronto iré\na estar con mi glorioso Rey;\ncon clara visión puedo contemplar\nmi hogar, mi bellísimo hogar." 
+            },
+            { 
+                num: "338", 
+                title: "Las riberas de dicha inmortal", 
+                url_mp3: "https://tudominio.com/audios/338.mp3",
+                lyrics: "1\nLas riberas de dicha inmortal,\nla mansión de indecible placer,\nla bellísima luz celestial,\n¡cuántas glorias iremos a ver!\n\nCoro:\nEn aquel porvenir\nque divisa con júbilo el fiel,\nmás allá del Jordán,\nen la patria do reina Emanuel.\n\n2\nCada santo de Dios gozará,\ndeslumbrante en pureza y candor;\ndel Cordero en pos andará,\ncantará alabanzas de amor.\n\n3\nDe mi viaje la terminación\ntan feliz, ya no tarda en llegar.\nEfectuada mi transformación,\ncon Jesús para siempre he de estar." 
+            },
+            { 
+                num: "342", 
+                title: "Después del río", 
+                url_mp3: "https://tudominio.com/audios/342.mp3",
+                lyrics: "1\nHe oído de una tierra hermosa y soñada,\nun lugar en donde la alegría es total;\ncon mis ojos la diviso no muy distante,\nmis oídos ya escuchando música están.\nCansadora es la vida aquí de este lado,\ny mis brazos casi ya no pueden remar;\nagotados y heridos por tantos días;\nnecesito encontrar el Puerto de amor.\n\nCoro:\nDespués del río existe un lugar para mí,\ndespués del río existe paz.\nDespués del río habrá felicidad sin fin,\ncon mi Jesús voy a morar.\n\n2\nHe soñado con aquellas bellas moradas,\nque ninguno ha visto en este mundo jamás;\nde belleza que no puede ser comparada,\npues la gloria del Señor se encuentra allí.\nMucho más hermoso que el sol al ponerse,\no el reflejo del rocío en una flor,\nes aquel encuentro para los redimidos;\npues valió la pena aquí luchar y vencer." 
+            },
+            { 
+                num: "528", 
+                title: "Por montañas, muy cansado", 
+                url_mp3: "https://tudominio.com/audios/528.mp3",
+                lyrics: "1\nPor montañas, muy cansado, el rebaño caminó.\nPor desiertos ha vagado, duras pruebas soportó.\nEl clarín está llamando firme y fiel, con clara voz:\nfe, unión y amor abunden, haya gozo y canción.\n\n2\nLa verdad sus mentes colma en su senda al proseguir.\nTus mandatos atesoran en sus vidas, al cumplir.\nTu Palabra para ellos es más dulce que la miel;\ntus preceptos obedecen, pues desean serte fiel.\n\n3\nEn la luz de tu pureza, en la bella y gran Ciudad,\ntrasponiendo sus portales, los que amas estarán.\n¡Oh, cuán dulce es la promesa: el dolor no existirá;\nsolo paz y alegría do tus hijos reinarán!\n\n4\nPronto te contemplaremos, en las nubes volverás.\nLos salvados, jubilosos, tu victoria cantarán.\n¡Cuánto ansío tu venida! ¡Ven, Jesús, no tardes más!\n¡Cuán bendita es la esperanza: pronto vamos al hogar!" 
+            }
+        ];
+
+
+
+
+// --- BASE DE DATOS PARA AUDIO OFFLINE (IndexedDB) ---
+        const dbName = "HimnarioAudioDB";
+        let audioDB;
+        let currentAudio = null; // Para controlar si ya hay algo sonando
+
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = (event) => {
+            audioDB = event.target.result;
+            audioDB.createObjectStore("audios", { keyPath: "num" });
+        };
+        request.onsuccess = (event) => {
+            audioDB = event.target.result;
+        };
+        request.onerror = (event) => {
+            console.error("Error al abrir la base de datos de audio", event);
+        };
+
+
+
+        // --- LOCALSTORAGE & INICIALIZACIÓN ---
+        
+        let selectedConsuelo = JSON.parse(localStorage.getItem('hymns_consuelo'));
+        // Si no hay nada guardado o la lista está vacía, carga estos por defecto (cambié el 161 por 162)
+        if (!selectedConsuelo || selectedConsuelo.length === 0) {
+            selectedConsuelo = ['162', '333', '423'];
+        }
+
+        let selectedConsuelo2 = JSON.parse(localStorage.getItem('hymns_consuelo2'));
+        // Si no hay nada guardado o la lista está vacía, carga el 097
+        if (!selectedConsuelo2 || selectedConsuelo2.length === 0) {
+            selectedConsuelo2 = ['333'];
+        }
+
+        let selectedFinal = JSON.parse(localStorage.getItem('hymn_final'));
+        if (!selectedFinal || selectedFinal.length === 0) {
+            selectedFinal = ['333'];
+        }
+
+        window.onload = () => {
+            renderSelectedHymns('consuelo', selectedConsuelo);
+            renderSelectedHymns('consuelo2', selectedConsuelo2);
+            renderSelectedHymns('final', selectedFinal);
+            
+            renderHymnList(hymnsData, 'list-consuelo', 'consuelo');
+            renderHymnList(hymnsData, 'list-consuelo2', 'consuelo2');
+            renderHymnList(hymnsData, 'list-final', 'final');
+            renderHymnList(hymnsData, 'list-all', 'all');
+        };
+
+        // --- ACORDEONES ---
+        function toggleAccordion(element) {
+            const content = element.nextElementSibling;
+            const allContents = document.querySelectorAll('.accordion-content');
+            
+            // Si está cerrado, cierra los demás y abre este
+            if (content.style.display !== 'block') {
+                allContents.forEach(el => el.style.display = 'none');
+                content.style.display = 'block';
+                // Scroll suave
+                setTimeout(() => element.scrollIntoView({behavior: "smooth", block: "start"}), 100);
+            } else {
+                content.style.display = 'none';
+            }
+        }
+
+        // --- MODALES ---
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Evita el scroll del fondo
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function openHymn(num) {
+            const hymn = hymnsData.find(h => h.num === num);
+            if(hymn) {
+                document.getElementById('hymn-modal-title').innerHTML = `<i class="fas fa-music"></i> Himno ${hymn.num} - ${hymn.title}`;
+                document.getElementById('hymn-modal-lyrics').innerText = hymn.lyrics;
+                openModal('modal-himno');
+            }
+        }
+
+       async function playAudio(e, num) {
+            e.stopPropagation();
+
+            // Si ya hay un himno sonando, lo detenemos (Play/Pausa)
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                alert("Música detenida.");
+                return;
+            }
+
+            const hymn = hymnsData.find(h => h.num === num);
+            if (!hymn || !hymn.url_mp3) {
+                alert("Aún no has puesto la URL del MP3 para este himno en el código.");
+                return;
+            }
+
+            // Mostrar un aviso de que estamos procesando
+            const btn = e.target.closest('.btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+
+            const transaction = audioDB.transaction(["audios"], "readonly");
+            const store = transaction.objectStore("audios");
+            const getRequest = store.get(num);
+
+            getRequest.onsuccess = async () => {
+                btn.innerHTML = originalText; // Restaurar el botón
+                
+                if (getRequest.result) {
+                    // ¡EL AUDIO YA ESTÁ GUARDADO EN EL TELÉFONO! (Offline)
+                    const audioBlob = getRequest.result.blob;
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    reproducirBlob(audioUrl);
+                } else {
+                    // NO ESTÁ GUARDADO, LO DESCARGAMOS DE INTERNET (Requiere conexión esta primera vez)
+                    try {
+                        const response = await fetch(hymn.url_mp3);
+                        if (!response.ok) throw new Error("No se pudo descargar");
+                        const blob = await response.blob();
+
+                        // Lo guardamos en el teléfono para la próxima vez
+                        const saveTx = audioDB.transaction(["audios"], "readwrite");
+                        saveTx.objectStore("audios").put({ num: num, blob: blob });
+
+                        // Lo reproducimos
+                        const audioUrl = URL.createObjectURL(blob);
+                        reproducirBlob(audioUrl);
+                    } catch (error) {
+                        alert("Error al descargar el audio. Verifica tu internet o que la URL del mp3 sea correcta.");
+                    }
+                }
+            };
+        }
+
+        function reproducirBlob(url) {
+            currentAudio = new Audio(url);
+            currentAudio.play();
+            currentAudio.onended = () => { 
+                currentAudio = null; // Liberar cuando termine de sonar
+            };
+        }
+
+        // --- BUSCADOR IGNORANDO ACENTOS Y ORDEN ---
+        function removeAccents(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
+        function filterHymns(type) {
+            const query = removeAccents(document.getElementById(`search-${type}`).value);
+            const words = query.split(" ").filter(w => w.trim() !== "");
+            
+            const filtered = hymnsData.filter(hymn => {
+                const searchSpace = removeAccents(hymn.num + " " + hymn.title);
+                // Todas las palabras escritas deben estar en el título/número
+                return words.every(word => searchSpace.includes(word));
+            });
+            
+            renderHymnList(filtered, `list-${type}`, type);
+        }
+
+        // --- RENDERIZADO DE LISTAS ---
+        function renderHymnList(hymns, containerId, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            hymns.forEach(h => {
+                const div = document.createElement('div');
+                div.className = 'hymn-item';
+                div.innerHTML = `
+                    <div class="hymn-title" onclick="openHymn('${h.num}')">
+                        <i class="fas fa-music"></i> ${h.num} - ${h.title}
+                    </div>
+                    <div>
+                        ${type !== 'all' ? `<button class="btn btn-mp3" style="background:#27ae60;" onclick="selectHymn(event, '${h.num}', '${type}')"><i class="fas fa-plus"></i> Usar</button>` : ''}
+                        <button class="btn btn-mp3" onclick="playAudio(event, '${h.num}')"><i class="fas fa-play"></i> mp3</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderSelectedHymns(type, selectedArray) {
+            const container = document.getElementById(`${type}-hymns-container`);
+            container.innerHTML = '';
+            
+            selectedArray.forEach(num => {
+                const h = hymnsData.find(hx => hx.num === num);
+                if(h) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn';
+                    btn.style.background = '#e67e22';
+                    btn.innerHTML = `<i class="fas fa-music"></i> ${h.num} - ${h.title}`;
+                    btn.onclick = () => openHymn(h.num);
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn';
+                    removeBtn.style.background = '#c0392b';
+                    removeBtn.style.padding = '10px';
+                    removeBtn.innerHTML = `<i class="fas fa-trash"></i>`;
+                    removeBtn.onclick = (e) => { e.stopPropagation(); removeHymn(h.num, type); };
+                    
+                    const wrap = document.createElement('div');
+                    wrap.style.display = 'inline-block';
+                    wrap.style.marginBottom = '5px';
+                    wrap.appendChild(btn);
+                    wrap.appendChild(removeBtn);
+                    
+                    container.appendChild(wrap);
+                }
+            });
+        }
+
+        function selectHymn(e, num, type) {
+            e.stopPropagation();
+            if(type === 'consuelo') {
+                if(!selectedConsuelo.includes(num)) selectedConsuelo.push(num);
+                localStorage.setItem('hymns_consuelo', JSON.stringify(selectedConsuelo));
+                renderSelectedHymns('consuelo', selectedConsuelo);
+            } else if (type === 'consuelo2') { // <-- AGREGA ESTE BLOQUE
+                if(!selectedConsuelo2.includes(num)) selectedConsuelo2.push(num);
+                localStorage.setItem('hymns_consuelo2', JSON.stringify(selectedConsuelo2));
+                renderSelectedHymns('consuelo2', selectedConsuelo2);
+            } else if (type === 'final') {
+                selectedFinal = [num]; 
+                localStorage.setItem('hymn_final', JSON.stringify(selectedFinal));
+                renderSelectedHymns('final', selectedFinal);
+            }   
+            alert(`Himno ${num} establecido.`);
+        }
+
+        function removeHymn(num, type) {
+            if(type === 'consuelo') {
+                selectedConsuelo = selectedConsuelo.filter(n => n !== num);
+                localStorage.setItem('hymns_consuelo', JSON.stringify(selectedConsuelo));
+                renderSelectedHymns('consuelo', selectedConsuelo);
+            } else if (type === 'consuelo2') { // <-- AGREGA ESTE BLOQUE
+                selectedConsuelo2 = selectedConsuelo2.filter(n => n !== num);
+                localStorage.setItem('hymns_consuelo2', JSON.stringify(selectedConsuelo2));
+                renderSelectedHymns('consuelo2', selectedConsuelo2);
+            } else if (type === 'final') {
+                selectedFinal = [];
+                localStorage.setItem('hymn_final', JSON.stringify(selectedFinal));
+                renderSelectedHymns('final', selectedFinal);
+            }
+        }
+    </script>
+</body>
+</html>
