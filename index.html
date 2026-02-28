@@ -401,14 +401,14 @@
 
         <div class="accordion-item">
             <div class="accordion-header" onclick="toggleAccordion(this)">
-                <div class="prog-left"><i class="fas fa-bible"></i> Reflexión y Palabras Finales</div>
+                <div class="prog-left"><i class="fas fa-bible"></i> Palabras Finales</div>
                 <div class="prog-right">Ptr. Giovanni Castillo</div>
             </div>
             <div class="accordion-content">
                 <div class="content-block">
                     <p>Una vez concluida la última contemplación, el Pastor comparte una lectura bíblica y una breve reflexión de esperanza y consuelo.</p>
                     <ul>
-                        <li><strong>Textos sugeridos:</strong> 1 Corintios 15:51-55 ("¿Dónde está, oh muerte, tu aguijón?") o Apocalipsis 21:3-4 ("Enjugará Dios toda lágrima").</li>
+                        <li><strong>Textos sugeridos:</strong>  1 Tesalonicenses 4:16 ("Porque el Señor mismo con voz de mando, con voz de arcángel, y con trompeta de Dios, descenderá del cielo; y los muertos en Cristo resucitarán primero.") </li>
                     </ul>
                 </div>
             </div>
@@ -463,11 +463,11 @@
 
     <div id="modal-bio" class="modal" ondblclick="closeModal('modal-bio')">
         <div class="modal-header">
-            <h3 class="modal-title"><i class="fas fa-book-open"></i> Biografía</h3>
+            <h3 class="modal-title"><i class="fas fa-book-open"></i> Biografía [EJEMPLO]</h3>
             <button class="btn-close" onclick="closeModal('modal-bio')"><i class="fas fa-times"></i> Cerrar</button>
         </div>
         <div class="modal-body">
-            <div class="biography-text">Nació en un hogar lleno de amor y principios cristianos, la hermana Ma. Elva Ambrosio Rodriguez dedicó su vida al servicio de Dios y de su prójimo. Fue un pilar fundamental para su familia, enseñando con el ejemplo el valor del trabajo, la fe inquebrantable y el amor incondicional.
+            <div class="biography-text">  Nació en un hogar lleno de amor y principios cristianos, la hermana Ma. Elva Ambrosio Rodriguez dedicó su vida al servicio de Dios y de su prójimo. Fue un pilar fundamental para su familia, enseñando con el ejemplo el valor del trabajo, la fe inquebrantable y el amor incondicional.
             
 A lo largo de su caminar terrenal, dejó huellas imborrables en su iglesia local y en la comunidad. Su sonrisa, sus consejos oportunos y su disposición para ayudar en los momentos de necesidad serán recordados por todos los que tuvieron el privilegio de conocerla. 
 
@@ -755,13 +755,13 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
         let selectedConsuelo = JSON.parse(localStorage.getItem('hymns_consuelo'));
         // Si no hay nada guardado o la lista está vacía, carga estos por defecto (cambié el 161 por 162)
         if (!selectedConsuelo || selectedConsuelo.length === 0) {
-            selectedConsuelo = ['162', '159', '423'];
+            selectedConsuelo = ['162', '333', '423'];
         }
 
         let selectedConsuelo2 = JSON.parse(localStorage.getItem('hymns_consuelo2'));
         // Si no hay nada guardado o la lista está vacía, carga el 097
         if (!selectedConsuelo2 || selectedConsuelo2.length === 0) {
-            selectedConsuelo2 = ['328'];
+            selectedConsuelo2 = ['333'];
         }
 
         let selectedFinal = JSON.parse(localStorage.getItem('hymn_final'));
@@ -985,4 +985,3 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
     </script>
 </body>
 </html>
-
