@@ -483,9 +483,9 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
             <h3 class="modal-title"><i class="fas fa-bible"></i> Texto Bíblico Principal</h3>
             <button class="btn-close" onclick="closeModal('modal-biblia')"><i class="fas fa-times"></i> Cerrar</button>
         </div>
-        <div class="modal-body" style="text-align: center; margin-top: 20%;">
-            <h2 style="font-size: 2.5rem; color: var(--accent); margin-bottom: 20px;">1 Tesalonicenses 4:13-14</h2>
-            <p style="font-size: 1.5rem; font-style: italic;">"Tampoco queremos, hermanos, que ignoréis acerca de los que duermen, para que no os entristezcáis como los otros que no tienen esperanza. Porque si creemos que Jesús murió y resucitó, así también traerá Dios con Jesús a los que durmieron en él."</p>
+        <div class="modal-body" style="text-align: center; margin-top: 1%;">
+            <h2 style="font-size: 1.5rem; color: var(--accent); margin-bottom: 1px;">Marcos 5:25-29</h2>
+            <p style="font-size: 1.1rem; font-style: italic;">"<Strong>25</Strong> Pero una mujer que desde hacía doce años padecía de flujo de sangre, <Strong>26</Strong> y había sufrido mucho de muchos médicos, y gastado todo lo que tenía, y nada había aprovechado, antes le iba peor, <Strong>27</Strong> cuando oyó hablar de Jesús, vino por detrás entre la multitud, y tocó su manto. <Strong>28</Strong> Porque decía: Si tocare tan solamente su manto, seré salva. 29 Y en seguida la fuente de su sangre se secó; y sintió en el cuerpo que estaba sana de aquel azote."</p>
         </div>
         <div class="modal-hint">(Doble clic en la pantalla para cerrar)</div>
     </div>
@@ -509,7 +509,9 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
 
 
 
-
+<button style="display: block; margin: 40px auto 10px auto; background: transparent; border: none; color: #ccc; font-size: 0.7rem; cursor: pointer;" onclick="borrarDatosApp()">
+        <i class="fas fa-eraser"></i> Limpiar App
+    </button>
 
 
     <script>
@@ -757,13 +759,13 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
         let selectedConsuelo = JSON.parse(localStorage.getItem('hymns_consuelo'));
         // Si no hay nada guardado o la lista está vacía, carga estos por defecto (cambié el 161 por 162)
         if (!selectedConsuelo || selectedConsuelo.length === 0) {
-            selectedConsuelo = ['162', '333', '423'];
+            selectedConsuelo = ['162', '159', '423'];
         }
 
         let selectedConsuelo2 = JSON.parse(localStorage.getItem('hymns_consuelo2'));
         // Si no hay nada guardado o la lista está vacía, carga el 097
         if (!selectedConsuelo2 || selectedConsuelo2.length === 0) {
-            selectedConsuelo2 = ['333'];
+            selectedConsuelo2 = ['316'];
         }
 
         let selectedFinal = JSON.parse(localStorage.getItem('hymn_final'));
@@ -982,6 +984,38 @@ Hoy descansa de sus labores, durmiendo en Cristo, con la bendita esperanza de de
                 selectedFinal = [];
                 localStorage.setItem('hymn_final', JSON.stringify(selectedFinal));
                 renderSelectedHymns('final', selectedFinal);
+            }
+        }
+
+
+
+
+
+        // --- FUNCIÓN PARA BORRAR DATOS Y CACHÉ ---
+        function borrarDatosApp() {
+            const confirmacion1 = confirm("⚠️ ADVERTENCIA: Estás a punto de borrar los himnos seleccionados y todo el audio descargado.\n\n¿Estás seguro de que quieres continuar?");
+            
+            if (confirmacion1) {
+                const confirmacion2 = confirm("🚨 ÚLTIMA ADVERTENCIA: Esto devolverá la aplicación a su estado de fábrica. Necesitarás internet para volver a descargar los audios de los himnos.\n\n¿Proceder con el borrado?");
+                
+                if (confirmacion2) {
+                    // Borrar selecciones de LocalStorage
+                    localStorage.removeItem('hymns_consuelo');
+                    localStorage.removeItem('hymns_consuelo2');
+                    localStorage.removeItem('hymn_final');
+
+                    // Borrar base de datos de audio (IndexedDB)
+                    const req = indexedDB.deleteDatabase("HimnarioAudioDB");
+                    
+                    req.onsuccess = function () {
+                        alert("✅ Limpieza completada con éxito. La página se recargará.");
+                        window.location.reload();
+                    };
+                    
+                    req.onerror = function () {
+                        alert("❌ Hubo un error al intentar borrar los audios. Intenta cerrar la página y volver a entrar.");
+                    };
+                }
             }
         }
     </script>
